@@ -14,6 +14,7 @@ resource "scaleway_server" "swarm_worker" {
   connection {
     type = "ssh"
     user = "root"
+    private_key = "${file("${var.ssh_key}")}"
   }
 
   provisioner "remote-exec" {
@@ -36,7 +37,7 @@ resource "scaleway_server" "swarm_worker" {
     inline = [
       "chmod +x /tmp/install-docker-ce.sh",
       "/tmp/install-docker-ce.sh ${var.docker_version}",
-      "docker swarm join --token ${data.external.swarm_tokens.result.worker} ${scaleway_server.swarm_manager.0.private_ip}:2377",
+      "docker swarm join ${scaleway_server.swarm_manager.0.private_ip}:2377 --token $(docker -H ${scaleway_server.swarm_manager.0.private_ip} swarm join-token -q worker)"
     ]
   }
 
@@ -54,6 +55,7 @@ resource "scaleway_server" "swarm_worker" {
       type = "ssh"
       user = "root"
       host = "${scaleway_ip.swarm_manager_ip.0.ip}"
+      private_key = "${file("${var.ssh_key}")}"
     }
   }
 
@@ -82,16 +84,8 @@ resource "scaleway_server" "swarm_worker" {
       type = "ssh"
       user = "root"
       host = "${scaleway_ip.swarm_manager_ip.0.ip}"
+      private_key = "${file("${var.ssh_key}")}"
     }
   }
-}
-
-data "external" "swarm_tokens" {
-  program = ["./scripts/fetch-tokens.sh"]
-
-  query = {
-    host = "${scaleway_ip.swarm_manager_ip.0.ip}"
-  }
-
   depends_on = ["scaleway_server.swarm_manager"]
 }
