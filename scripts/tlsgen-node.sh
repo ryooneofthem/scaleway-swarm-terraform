@@ -2,6 +2,7 @@
 
 # arguments
 IP=$1
+PUBLIC_IP=$2
 
 # workdir
 cd certs
@@ -10,7 +11,7 @@ mkdir $1
 cd $1
 
 # extfile
-echo "subjectAltName = IP:${IP},IP:127.0.0.1" > extfile.cnf
+echo "subjectAltName = IP:${IP},IP:127.0.0.1,IP:${PUBLIC_IP}" > extfile.cnf
 echo "extendedKeyUsage = clientAuth,serverAuth" >> extfile.cnf
 
 # server cert

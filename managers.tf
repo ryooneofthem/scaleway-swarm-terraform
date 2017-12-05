@@ -29,7 +29,7 @@ resource "scaleway_server" "swarm_manager" {
   }
 
   provisioner "local-exec" {
-    command = "chmod +x scripts/tlsgen-node.sh && ./scripts/tlsgen-node.sh ${self.private_ip}"
+    command = "chmod +x scripts/tlsgen-node.sh && ./scripts/tlsgen-node.sh ${self.private_ip} ${self.public_ip}"
   }
   provisioner "file" {
     source = "certs/ca.pem"
