@@ -7,13 +7,34 @@ resource "scaleway_server" "swarm_worker" {
   name           = "${terraform.workspace}-worker-${count.index + 1}"
   image          = "${data.scaleway_image.xenial.id}"
   type           = "${var.worker_instance_type}"
-  bootscript     = "${data.scaleway_bootscript.rancher.id}"
+  #bootscript     = "${data.scaleway_bootscript.rancher.id}"
+  bootscript     = "${var.scaleway_bootscript_id}"
   security_group = "${scaleway_security_group.swarm_workers.id}"
   public_ip      = "${element(scaleway_ip.swarm_worker_ip.*.ip, count.index)}"
 
   connection {
     type = "ssh"
     user = "root"
+    private_key = "${file("${var.ssh_key}")}"
+  }
+  
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir /certs"
+    ]
+  }
+
+  provisioner "file" {
+    source = "certs/ca.pem"
+    destination = "/certs/ca.pem"
+  }
+  provisioner "file" {
+    source = "certs/key.pem"
+    destination = "/certs/swarm-priv-key.pem"
+  }
+  provisioner "file" {
+    source = "certs/cert.pem"
+    destination = "/certs/swarm-cert.pem"
   }
 
   provisioner "remote-exec" {
@@ -36,7 +57,7 @@ resource "scaleway_server" "swarm_worker" {
     inline = [
       "chmod +x /tmp/install-docker-ce.sh",
       "/tmp/install-docker-ce.sh ${var.docker_version}",
-      "docker swarm join --token ${data.external.swarm_tokens.result.worker} ${scaleway_server.swarm_manager.0.private_ip}:2377",
+      "docker swarm join ${scaleway_server.swarm_manager.0.private_ip}:2377 --token $(docker --tlsverify --tlscacert=/certs/ca.pem --tlscert=/certs/swarm-cert.pem --tlskey=/certs/swarm-priv-key.pem -H ${scaleway_server.swarm_manager.0.private_ip}:2376 swarm join-token -q worker)"
     ]
   }
 
@@ -54,6 +75,7 @@ resource "scaleway_server" "swarm_worker" {
       type = "ssh"
       user = "root"
       host = "${scaleway_ip.swarm_manager_ip.0.ip}"
+      private_key = "${file("${var.ssh_key}")}"
     }
   }
 
@@ -82,16 +104,8 @@ resource "scaleway_server" "swarm_worker" {
       type = "ssh"
       user = "root"
       host = "${scaleway_ip.swarm_manager_ip.0.ip}"
+      private_key = "${file("${var.ssh_key}")}"
     }
   }
-}
-
-data "external" "swarm_tokens" {
-  program = ["./scripts/fetch-tokens.sh"]
-
-  query = {
-    host = "${scaleway_ip.swarm_manager_ip.0.ip}"
-  }
-
   depends_on = ["scaleway_server.swarm_manager"]
 }
