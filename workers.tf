@@ -7,7 +7,8 @@ resource "scaleway_server" "swarm_worker" {
   name           = "${terraform.workspace}-worker-${count.index + 1}"
   image          = "${data.scaleway_image.xenial.id}"
   type           = "${var.worker_instance_type}"
-  bootscript     = "${data.scaleway_bootscript.rancher.id}"
+  #bootscript     = "${data.scaleway_bootscript.rancher.id}"
+  bootscript     = "${var.scaleway_bootscript_id}"
   security_group = "${scaleway_security_group.swarm_workers.id}"
   public_ip      = "${element(scaleway_ip.swarm_worker_ip.*.ip, count.index)}"
 

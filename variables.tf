@@ -25,3 +25,7 @@ variable "docker_api_ip" {
 variable "ssh_key" {
   default = ""
 }
+
+variable "scaleway_bootscript_id" {
+  default = "f4f4e369-e08b-4e3d-ba86-9a2fbc3c7ed9"
+}
