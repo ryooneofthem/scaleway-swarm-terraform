@@ -5,7 +5,7 @@ ExecStart=/usr/bin/dockerd -H fd:// \
   --tlscacert=/certs/ca.pem \
   --tlscert=/certs/swarm-cert.pem \
   --tlskey=/certs/swarm-priv-key.pem \
-  -H=${ip}:2376
+  -H tcp://${ip}:2376
   --storage-driver=overlay2 \
   --dns 8.8.4.4 --dns 8.8.8.8 \
   --log-driver json-file \
