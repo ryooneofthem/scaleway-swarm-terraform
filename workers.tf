@@ -17,6 +17,28 @@ resource "scaleway_server" "swarm_worker" {
     user = "root"
     private_key = "${file("${var.ssh_key}")}"
   }
+  
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir /certs"
+    ]
+  }
+
+  provisioner "local-exec" {
+    command = "chmod +x scripts/gen_swarm_certs.sh && ./scripts/gen_swarm_certs.sh"
+  }
+  provisioner "file" {
+    source = "certs/ca.pem"
+    destination = "/certs/ca.pem"
+  }
+  provisioner "file" {
+    source = "certs/swarm-primary-priv-key.pem"
+    destination = "/certs/swarm-priv-key.pem"
+  }
+  provisioner "file" {
+    source = "certs/swarm-primary-cert.pem"
+    destination = "/certs/swarm-cert.pem"
+  }
 
   provisioner "remote-exec" {
     inline = [
@@ -38,7 +60,7 @@ resource "scaleway_server" "swarm_worker" {
     inline = [
       "chmod +x /tmp/install-docker-ce.sh",
       "/tmp/install-docker-ce.sh ${var.docker_version}",
-      "docker swarm join ${scaleway_server.swarm_manager.0.private_ip}:2377 --token $(docker -H ${scaleway_server.swarm_manager.0.private_ip} swarm join-token -q worker)"
+      "docker swarm join ${scaleway_server.swarm_manager.0.private_ip}:2377 --token $(docker --tlsverify --tlscacert=/certs/ca.pem --tlscert=/certs/swarm-cert.pem --tlskey=/certs/swarm-priv-key.pem -H ${scaleway_server.swarm_manager.0.private_ip}:2376 swarm join-token -q worker)"
     ]
   }
 
