@@ -25,18 +25,22 @@ resource "scaleway_server" "swarm_manager" {
   }
 
   provisioner "local-exec" {
-    command = "chmod +x scripts/gen_swarm_certs.sh && ./scripts/gen_swarm_certs.sh"
+    command = "chmod +x scripts/tlsgen-base.sh && ./scripts/tlsgen-base.sh"
+  }
+
+  provisioner "local-exec" {
+    command = "chmod +x scripts/tlsgen-node.sh && ./scripts/tlsgen-node.sh ${self.private_ip}"
   }
   provisioner "file" {
     source = "certs/ca.pem"
     destination = "/certs/ca.pem"
   }
   provisioner "file" {
-    source = "certs/swarm-primary-priv-key.pem"
+    source = "certs/${self.private_ip}/server-key.pem"
     destination = "/certs/swarm-priv-key.pem"
   }
   provisioner "file" {
-    source = "certs/swarm-primary-cert.pem"
+    source = "certs/${self.private_ip}/server-cert.pem"
     destination = "/certs/swarm-cert.pem"
   }
 
