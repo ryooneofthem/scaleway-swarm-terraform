@@ -12,7 +12,9 @@ generate_swarm_certs () {
   openssl x509 -req -days 1825 -in certs/swarm-primary.csr -CA certs/ca.pem -CAkey certs/ca-key.pem -CAcreateserial -out certs/swarm-primary-cert.pem -extensions v3_req 
 }
 
-if [ -f certs/swarm-cert.pem ]; then
+#SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+#echo $SCRIPTPATH
+if [ -f certs/ca.pem ]; then
 	echo "Swarm cert already exists..."
 else
 	echo "Creating CA certs, Swarm certs"
