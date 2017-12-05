@@ -24,9 +24,10 @@ resource "scaleway_server" "swarm_worker" {
     ]
   }
 
-  provisioner "local-exec" {
-    command = "chmod +x scripts/gen_swarm_certs.sh && ./scripts/gen_swarm_certs.sh"
-  }
+  #provisioner "local-exec" {
+  #  command = "chmod +x scripts/gen_swarm_certs.sh && ./scripts/gen_swarm_certs.sh"
+  #}
+
   provisioner "file" {
     source = "certs/ca.pem"
     destination = "/certs/ca.pem"
