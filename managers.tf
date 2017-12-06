@@ -20,7 +20,8 @@ resource "scaleway_server" "swarm_manager" {
   
   provisioner "remote-exec" {
     inline = [
-      "mkdir /certs"
+      "mkdir /certs",
+      "mkdir -p /etc/mysql"
     ]
   }
 
@@ -42,6 +43,11 @@ resource "scaleway_server" "swarm_manager" {
   provisioner "file" {
     source = "certs/${self.private_ip}/server-cert.pem"
     destination = "/certs/swarm-cert.pem"
+  }
+  
+  provisioner "file" {
+    source = "conf/my.cnf.tpl"
+    destination = "/etc/mysql/my.cnf"
   }
 
   provisioner "remote-exec" {
